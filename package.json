@@ -1,0 +1,11 @@
+{
+  "name": "merit-allocation-predictor",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:data": "node scripts/build-data.mjs",
+    "backtest": "node scripts/backtest.mjs",
+    "dev": "python3 -m http.server 8788 -d public",
+    "deploy": "wrangler pages deploy public --project-name merit-allocation-predictor"
+  }
+}

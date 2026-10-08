@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Merit Allocation Predictor</title>
+<meta name="description" content="Estimate your chance of each hospital in the medical internship allocation, from past merit-list data.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Merit Allocation Predictor</h1>
+  <p class="sub">Enter your merit number and the total number of candidates; add this year's vacancy list if you have it, or let the model estimate it from past years. The model replays the candidates ahead of you using past allocations and shows how likely each hospital is to still be open at your turn.</p>
+</header>
+
+<main>
+  <section class="card inputs">
+    <div class="field wide">
+      <label for="mode">Vacancy list</label>
+      <select id="mode">
+        <option value="estimate">I don't have it: estimate from past years</option>
+        <option value="known">I have this year's vacancy list</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="rank">Your merit number</label>
+      <input id="rank" type="number" min="1" inputmode="numeric" placeholder="e.g. 640">
+    </div>
+    <div class="field">
+      <label for="n">Total candidates <span class="hint" id="sumHint"></span></label>
+      <input id="n" type="number" min="1" inputmode="numeric" placeholder="e.g. 1650">
+    </div>
+    <div class="field">
+      <label for="batchType">Batch type</label>
+      <select id="batchType">
+        <option value="main">Main batch</option>
+        <option value="repeat">Repeat batch</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="naRate">Skip rate % <span class="hint">(candidates who don't pick)</span></label>
+      <input id="naRate" type="number" min="0" max="30" step="0.5" value="1.5">
+    </div>
+    <button id="run" class="primary">Calculate</button>
+  </section>
+
+  <section class="card" id="summary" hidden></section>
+
+  <section class="card">
+    <div class="toolbar">
+      <h2>Hospitals &amp; your priority order</h2>
+      <div class="tools" id="listTools">
+        <select id="template" title="Fill vacancies from a past batch"></select>
+        <button id="paste">Paste list…</button>
+        <button id="clear">Clear</button>
+      </div>
+    </div>
+
+    <details class="auto">
+      <summary>Auto-order by category &amp; location</summary>
+      <div class="autogrid">
+        <div class="cats" id="cats"></div>
+        <label class="slider">Location weight
+          <input id="alpha" type="range" min="0" max="100" value="30">
+          <span id="alphaVal">30%</span>
+        </label>
+        <label class="check"><input id="hideZero" type="checkbox" checked> Hide hospitals with 0 vacancies</label>
+        <button id="auto">Apply order</button>
+      </div>
+      <p class="hint">Category priority: 1 = most preferred. Location score (1 remote – 5 near Colombo / expressways) is a rough default you can edit per hospital in the table.</p>
+    </details>
+
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr>
+          <th>#</th><th>Hospital</th><th title="Closeness to city centres & highways, 1-5">Loc.</th><th id="postsHead">Posts</th>
+          <th title="Chance posts remain when your turn comes">Still open at my turn</th>
+          <th title="Chance you are allocated here, given your order">I get this one</th>
+          <th title="Chance you get this or anything above it">This or better</th>
+          <th title="Where a typical candidate at your merit position ends up, ignoring your preferences">Typical pick at my position</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="hint">Drag rows (or use ▲▼) to set your priority. "I get this one" assumes you pick the first hospital in your list that still has a post.</p>
+  </section>
+
+  <section class="card notes">
+    <h2>How this works</h2>
+    <p>Candidates choose in merit order from hospitals that still have posts. Each choice is modelled as a weighted random pick (Plackett–Luce), with hospital popularity learned from past batches. The app then simulates the candidates ahead of you thousands of times and counts how often each hospital is still open at your turn.</p>
+    <p>On held-out past batches this beat a "same relative position in earlier years" lookup (Brier score ≈ 0.05 vs 0.07 for main batches with the real vacancy list, and ≈ 0.06 vs 0.075 when vacancies are only estimated). It is a statistical estimate, not a guarantee: preferences shift each year, and fewer than ten past batches exist.</p>
+    <p id="trained" class="hint"></p>
+  </section>
+
+  <section class="card notes" id="glossary">
+    <h2>What the terms mean</h2>
+    <dl>
+      <dt>Still open at my turn</dt>
+      <dd>The chance that a hospital still has a free spot when it's your turn to choose. If it says 90%, it means in 90 out of 100 tries, a spot was waiting for you.</dd>
+
+      <dt>I get this one</dt>
+      <dd>The chance you will actually get this specific hospital. Because you will get the first available hospital on your list, this depends on how you rank them. Even if a hospital is 100% open, your chance to get it might be low if you are likely to get a hospital you put higher up on your list.</dd>
+
+      <dt>This or better</dt>
+      <dd>The chance you get this hospital OR one you ranked higher. It adds up your chances as you go down your list. This percentage will always go up the further down the list you look.</dd>
+
+      <dt>Typical pick at my position</dt>
+      <dd>Where a typical candidate at your merit position ends up, ignoring your own preferences. Among the hospitals still open at your turn, each is picked in proportion to how popular it has been in past years. Use it as the direct answer to "which hospital will I most likely get?" when you have not set a priority order.</dd>
+
+      <dt>Vacancy list: estimate from past years</dt>
+      <dd>Use this when this year's vacancies are not published yet. The model takes each hospital's share of posts in past batches of the same type, scales it to your total candidates, and redraws the pattern in every simulation run. The Posts column then shows the average estimated posts, rounded, and you cannot edit it. The results are less certain than with the real list (see the accuracy note above). Switch to "I have this year's vacancy list" once it is published.</dd>
+
+      <dt>Your merit number</dt>
+      <dd>Your rank on the merit list (1 is the best). Everyone with a smaller number gets to pick before you.</dd>
+
+      <dt>Total candidates</dt>
+      <dd>The total number of people picking hospitals. A warning will show if this number doesn't match the total number of hospital spots available.</dd>
+
+      <dt>Batch type</dt>
+      <dd>"Main" batches are the big yearly groups. "Repeat" batches are the smaller, later groups. People in these groups make different choices, so the system looks at past data that matches your specific group.</dd>
+
+      <dt>Skip rate %</dt>
+      <dd>The percentage of people ahead of you who decide not to take a hospital job at all (usually 1–2%). Every person who skips leaves an extra spot open, which gives you a better chance.</dd>
+
+      <dt>Posts (vacancies)</dt>
+      <dd>The number of available jobs at a hospital this year. Hospitals with 0 jobs are hidden because you cannot pick them.</dd>
+
+      <dt>Loc. (location score)</dt>
+      <dd>A 1 to 5 rating of how easy it is to travel to the hospital. 5 means it is near a big city or highway, and 1 means it is far away. You can change these ratings yourself. They only help you sort your list; they don't change your actual chances.</dd>
+
+      <dt>Category badges</dt>
+      <dd>Tags that show the type of hospital (Teaching, District General, Base A, and Base B). Provincial General hospitals are grouped with Teaching hospitals.</dd>
+
+      <dt>Auto-order: category priority</dt>
+      <dd>Lets you rank hospital types from your favorite (1) to least favorite. Clicking "Apply order" will organize your list based on these numbers.</dd>
+
+      <dt>Auto-order: location weight</dt>
+      <dd>Decides what is more important when sorting: the hospital type or the location. At 0%, it only sorts by hospital type. At 100%, it only sorts by location.</dd>
+
+      <dt>Fill vacancies from…</dt>
+      <dd>Fills in the number of hospital spots using real data from a past year. You can use this as a quick starting point and just change the numbers that are different this year.</dd>
+
+      <dt>"Chance every listed hospital is full"</dt>
+      <dd>The chance that by the time it is your turn, all the hospitals on your list are already taken, meaning you wouldn't get any of them.</dd>
+
+      <dt>Simulation</dt>
+      <dd>The system guesses what the people ahead of you will do by running 4,000 fast test runs. It uses past data to make smart guesses. The percentages you see show how often things happened in those test runs (give or take about 1%).</dd>
+    </dl>
+  </section>
+</main>
+
+<dialog id="pasteDlg">
+  <form method="dialog">
+    <h3>Paste vacancy list</h3>
+    <p class="hint">One hospital per line: name then number, e.g. <code>TH Kandy 12</code> or <code>DGH Matale, 4</code>. Typos are matched automatically.</p>
+    <textarea id="pasteText" rows="10"></textarea>
+    <p id="pasteMsg" class="hint"></p>
+    <div class="dlgbtns"><button value="cancel">Cancel</button><button id="pasteOk" class="primary" value="ok">Import</button></div>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

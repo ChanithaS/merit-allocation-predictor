@@ -1,0 +1,12 @@
+# macOS metadata
+.DS_Store
+
+# Local dependencies and Cloudflare development state
+node_modules/
+.wrangler/
+
+# Local secrets, if any are added later
+.dev.vars
+.env
+.env.*
+!.env.example
