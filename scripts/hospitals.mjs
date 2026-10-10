@@ -75,12 +75,10 @@ export const HOSPITALS = [
   ['thambuththegama', 'BH(B) Thambuththegama', 'B', 'Anuradhapura', 2, ['THAMBUTHTHEGAMA', 'THAMBUTTEGAMA']],
 ];
 
-// Exact full-string overrides (checked before prefix stripping).
-export const OVERRIDES = {
-  'DGH GAMPOLA': 'gampaha', // single 2026 row; Gampola is a Base hospital, so this is a Gampaha typo
-};
+// Exact full-string overrides (checked before prefix stripping). None needed currently.
+export const OVERRIDES = {};
 
-// Garbled rows that cannot be resolved; they are dropped (and counted in the build report).
-export const IGNORED = new Set(['F', 'BHAGYA KAH', 'BHASURA EML']);
+// Rows that cannot be resolved to a hospital are dropped and counted in the build report. None currently.
+export const IGNORED = new Set();
 
 export const CATEGORY_NAMES = { T: 'Teaching', D: 'DGH', A: 'Base A', B: 'Base B' };

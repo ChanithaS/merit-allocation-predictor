@@ -62,9 +62,15 @@ cannot be anticipated, so the estimate is least reliable for those. So it is usa
 - New hospitals first seen in Aug 2026 (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) are
   listed as plain "BH"/"DGH", so their Base A/B category is an assumption.
 
+## Data verification
+Every CSV was checked against its source PDF with an independent OCR (Apple Vision), keyed by merit number,
+and uncertain rows were read from the page images. The only errors were three rows with garbled text
+(Oct 2023 #814 and #1392, June 2023 #311), now fixed. Look-alike Greek/Cyrillic letters were replaced by
+plain Latin ones. July 2026 #236 is printed as "DGH Gampola" in the official list itself; it is read literally
+as Gampola. All rows now map to a hospital, so nothing is dropped.
+
 ## Assumptions to check
 - Location scores (1-5) in `scripts/hospitals.mjs` are rough estimates; edit them in the UI too.
 - BH Point Pedro only appears as plain "BH" in the data; it is assumed Base A.
 - PGH hospitals are grouped with Teaching (they became TH in later years).
 - Only two main batches exist, so main-batch estimates are uncertain; treat them as a guide.
-- 3 garbled rows are dropped; `DGH GAMPOLA` (1 row) is treated as a Gampaha typo.
