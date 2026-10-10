@@ -204,9 +204,7 @@ worker.onmessage = ({ data: m }) => {
   if (m.type === 'progress') { $('run').textContent = `Simulating… ${Math.round(m.f * 100)}%`; return; }
   state.result = m;
   $('run').disabled = false; $('run').textContent = 'Calculate';
-  const vacOnly = data.batches.filter(b => b.orderReliable === false).map(b => b.label);
-  $('trained').textContent = 'Learned from: ' + m.trained.join('; ') +
-    (vacOnly.length ? `. Used only for vacancy estimates (merit order not reliable): ${vacOnly.join('; ')}.` : '.');
+  $('trained').textContent = 'Learned from: ' + m.trained.join('; ');
   render();
 };
 worker.onerror = e => { $('run').disabled = false; $('run').textContent = 'Calculate'; alert('Simulation failed: ' + e.message); };

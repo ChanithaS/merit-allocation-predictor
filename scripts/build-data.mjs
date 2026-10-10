@@ -2,8 +2,8 @@
 import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { normalize, placeOf, looksLikeInstitution } from '../public/js/names.js';
-import { HOSPITALS, OVERRIDES, IGNORED, ORDER_UNRELIABLE } from './hospitals.mjs';
+import { normalize, placeOf } from '../public/js/names.js';
+import { HOSPITALS, OVERRIDES, IGNORED } from './hospitals.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'prev-data');
@@ -31,30 +31,23 @@ for (const file of readdirSync(dir).filter(f => f.endsWith('.csv')).sort()) {
   const seq = [];
   let notApplied = 0, dropped = 0;
 
-  // Older files use positions 1..N (best first). Newer ones use a score where HIGHER is better and
-  // some numbers are missing, so there the order of the scores (not their value) is the merit rank.
-  const asRanks = rows.every(r => Number.isInteger(r.pos)) && new Set(rows.map(r => r.pos)).size === rows.length
-    && Math.min(...rows.map(r => r.pos)) === 1 && Math.max(...rows.map(r => r.pos)) === rows.length;
-  rows.sort((x, y) => (asRanks ? x.pos - y.pos : y.pos - x.pos));
-  rows.forEach(r => {
+  // Merit numbers may have gaps (a number missing from the published list); only their order matters.
+  rows.sort((x, y) => x.pos - y.pos).forEach((r, i) => {
+    if (!Number.isInteger(r.pos) || (i && r.pos === rows[i - 1].pos)) problems.push(`${file}: bad or duplicate merit number ${r.pos}`);
     const full = normalize(r.inst);
     if (full === 'NOT APPLIED') { seq.push(-1); notApplied++; return; }
     if (IGNORED.has(full)) { seq.push(-1); dropped++; return; }
     const id = OVERRIDES[full] ?? aliases[placeOf(r.inst)] ?? aliases[full];
-    if (id) { seq.push(index[id]); return; }
-    // Not an institution at all (e.g. a candidate's name typed into the wrong column): keep the slot, drop the value.
-    if (!looksLikeInstitution(r.inst)) { seq.push(-1); dropped++; return; }
-    problems.push(`${file}: unknown institution "${r.inst}"`); seq.push(-1);
+    if (!id) { problems.push(`${file}: unknown institution "${r.inst}"`); seq.push(-1); return; }
+    seq.push(index[id]);
   });
 
   const vacancies = {};
   seq.forEach(h => { if (h >= 0) vacancies[HOSPITALS[h][0]] = (vacancies[HOSPITALS[h][0]] ?? 0) + 1; });
-  const bid = file.replace(/\.csv$/, '').trim().replace(/\s+/g, '-').toLowerCase();
   batches.push({
-    id: bid,
-    orderReliable: !(bid in ORDER_UNRELIABLE),
+    id: file.replace(/\.csv$/, '').trim().replace(/\s+/g, '-').toLowerCase(),
     label: label.replace(/\s+/g, ' '),
-    type, date: Number(m[2]) * 12 + month, n: rows.length, rankedByScore: !asRanks, notApplied, dropped, vacancies, seq,
+    type, date: Number(m[2]) * 12 + month, n: rows.length, notApplied, dropped, vacancies, seq,
   });
 }
 
@@ -65,11 +58,11 @@ if (problems.length) {
 
 batches.sort((a, b) => a.date - b.date);
 const out = {
-  hospitals: HOSPITALS.map(([id, name, cat, district, conv, , like]) => ({ id, name, cat, district, conv, ...(like ? { like } : {}) })),
+  hospitals: HOSPITALS.map(([id, name, cat, district, conv]) => ({ id, name, cat, district, conv })),
   aliases,
   batches,
 };
 writeFileSync(join(root, 'public/data/batches.json'), JSON.stringify(out));
 for (const b of batches)
-  console.log(`${b.label.padEnd(42)} ${b.type.padEnd(6)} n=${String(b.n).padStart(4)} notApplied=${b.notApplied} dropped=${b.dropped}${b.rankedByScore ? ' (ranked by score order)' : ''}${b.orderReliable ? '' : '  ** vacancies only: merit order unreliable **'}`);
+  console.log(`${b.label.padEnd(42)} ${b.type.padEnd(6)} n=${String(b.n).padStart(4)} notApplied=${b.notApplied} dropped=${b.dropped}`);
 console.log(`\n${HOSPITALS.length} hospitals -> public/data/batches.json`);

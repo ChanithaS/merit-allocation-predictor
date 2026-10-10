@@ -7,7 +7,6 @@ const data = JSON.parse(readFileSync(new URL('../public/data/batches.json', impo
 const H = data.hospitals.length;
 const cats = data.hospitals.map(h => h.cat);
 const holdouts = (process.argv[2] ?? 'main').split(',');
-const likes = data.hospitals.map(h => (h.like ? data.hospitals.findIndex(x => x.id === h.like) : -1));
 
 function truth(b, R) { // posts left when it is position R's turn
   const rem = new Int32Array(H);
@@ -37,14 +36,13 @@ function run(label, trainFilter, opts) {
   const bins = Array.from({ length: 10 }, () => ({ n: 0, p: 0, a: 0 }));
   for (const b of data.batches) {
     if (!(holdouts.includes(b.type) || holdouts.includes(b.id))) continue;
-    if (b.orderReliable === false) continue; // scored only on batches whose merit order is trustworthy
-    const train = data.batches.filter(t => t !== b && t.orderReliable !== false && trainFilter(t));
+    const train = data.batches.filter(t => t !== b && trainFilter(t));
     if (!train.length) continue;
     const { w, seen } = fitWeights(train, H, opts);
-    const wf = fillMissing(w, seen, cats, likes);
+    const wf = fillMissing(w, seen, cats);
     const vac = new Int32Array(H);
     b.seq.forEach(h => { if (h >= 0) vac[h]++; });
-    const est = opts.est ? vacancyEstimator(data.batches.filter(t => t !== b && t.type === b.type), data.hospitals.map(h => h.id), b.n) : null;
+    const est = opts.est ? vacancyEstimator(train.filter(t => t.type === b.type), data.hospitals.map(h => h.id), b.n) : null;
     for (let q = 0.05; q < 0.96; q += 0.05) {
       const R = Math.max(2, Math.round(q * b.n));
       const res = simulate({ w: wf, vac, vacSampler: est?.sampler, rank: R, n: b.n, priority: [], sims: 600, sigma: opts.sigma ?? 0.3, naRate: b.notApplied / b.n });

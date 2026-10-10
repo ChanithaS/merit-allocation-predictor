@@ -39,8 +39,8 @@ Backtest (Brier score, lower is better, on held-out batches):
 
 | Holdout | This model | "Same relative position in other years" |
 |---|---|---|
-| Main batches | 0.049 | 0.067 |
-| Repeat batches | 0.074 | 0.076 |
+| Main batches | 0.045 | 0.060 |
+| Repeat batches | 0.075 | 0.078 |
 
 Presets: main batch → trained on main batches only; repeat batch → main + repeat (repeat weighted 0.5).
 
@@ -49,21 +49,18 @@ Choose "I don't have it: estimate from past years" and enter only your merit num
 candidates. Each hospital's share of posts in past batches of the same type is scaled to your total,
 and each simulation run redraws a past year's pattern. A "typical pick at my position" column shows
 where an average candidate at your rank ends up (open hospitals weighted by popularity).
-Backtest Brier score: main 0.065 estimated vs 0.049 with the real list (baseline 0.089);
-repeat 0.088 vs 0.074 (baseline 0.091). So it is usable, but less certain.
+Backtest Brier score: main 0.079 estimated vs 0.045 with the real list (baseline 0.106);
+repeat 0.089 vs 0.075 (baseline 0.093). Hospitals that are new to the list (no earlier batch had them)
+cannot be anticipated, so the estimate is least reliable for those. So it is usable, but less certain.
 
 ## Data notes
-- `2026 August.csv` (2018/2019 main intake) is used **for vacancy estimates only**. Its merit
-  numbers are scores (higher = better, with gaps), so rows are ranked by score order, but the
-  allocation has no merit-order structure (teaching share flat across the list, Colombo peaks mid-list,
-  one end ~70% northern/eastern). Training on it made backtests much worse, so it is excluded from
-  popularity fitting (`ORDER_UNRELIABLE` in `scripts/hospitals.mjs`). Remove the entry to include it.
-- The repo is public. That CSV had candidate names typed into the institution column, so the committed
-  copy has them replaced by `UNKNOWN`; the original is kept locally in `prev-data/private/` (git-ignored).
-  For future files with names, run `node scripts/sanitize-csv.mjs "prev-data/<file>.csv"` before committing.
-- Rows that name no hospital (`UNKNOWN`, bare "DGH"/"BH") are dropped; their post can't be attributed.
-- New hospitals with no usable history (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) borrow a
-  comparable hospital's popularity (`like` in `scripts/hospitals.mjs`); their Base A/B category is assumed.
+- `2026 August.csv` was extracted from the published PDF. Its columns are Merit No, registration number,
+  name, institution; only merit number and institution are kept (no names). Eight merit numbers are
+  genuinely absent from the PDF (59, 168, 225, 684, 774, 843, 1172, 1186), so merit numbers can have gaps;
+  only their order is used. Check new extractions against the PDF: OCR drops rows and garbles names.
+- Rows marked "NOT APPLIED" are kept as skips. The vacancy count per hospital is how many times it appears.
+- New hospitals first seen in Aug 2026 (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) are
+  listed as plain "BH"/"DGH", so their Base A/B category is an assumption.
 
 ## Assumptions to check
 - Location scores (1-5) in `scripts/hospitals.mjs` are rough estimates; edit them in the UI too.

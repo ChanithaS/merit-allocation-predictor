@@ -3,13 +3,12 @@
 // the author's estimates, editable in the UI -- adjust to your own judgement.
 // cat: T = Teaching, D = DGH, A = Base A, B = Base B
 export const HOSPITALS = [
-  // id, name, cat, district, conv, [alias place names...], like?
-  // `like`: hospital whose popularity to borrow when this one has no usable pick history (a judgement call).
+  // id, name, cat, district, conv, [alias place names...]
   ['colombo', 'Colombo Group', 'T', 'Colombo', 5, ['COLOMBO GROUP']],
   ['ragama', 'TH Ragama (CNTH)', 'T', 'Gampaha', 5, ['RAGAMA', 'RAGAMA COLOMBO NORTH']],
   ['kalubowila', 'TH Kalubowila (CSTH)', 'T', 'Colombo', 5, ['KALUBOWILA', 'KALUBOWILA COLOMBO SOUTH']],
   ['sjp', 'TH Sri Jayewardenepura', 'T', 'Colombo', 5, ['SRI JAYAWARDANEPURA', 'SRI JAYAWARDENAPURA', 'SRI JAYAWARDENEPURA', 'SJGH']],
-  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'UNIVERSITY HOSPITAL', 'KDU']],
+  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'UNIVERSITY HOSPITAL', 'WERAHERA GENERAL SIR JOHN KOTHALAWELA DEFENCE UNIVERSITY HOSPITAL', 'KDU']],
   ['peradeniya', 'Peradeniya Group', 'T', 'Kandy', 4, ['PERADENIYA GROUP', 'PERADENIYA']],
   ['kandy', 'TH Kandy', 'T', 'Kandy', 4, ['KANDY']],
   ['galle', 'TH Karapitiya (Galle Group)', 'T', 'Galle', 4, ['GALLE GROUP', 'KARAPITIYA (GALLE GROUP)', 'KARAPITIYA', 'GALLE']],
@@ -38,7 +37,7 @@ export const HOSPITALS = [
   ['ampara', 'DGH Ampara', 'D', 'Ampara', 1, ['AMPARA']],
   ['kilinochchi', 'DGH Kilinochchi', 'D', 'Kilinochchi', 1, ['KILINOCHCHI', 'KILLINOCHCHI']],
   ['vavuniya', 'DGH Vavuniya', 'D', 'Vavuniya', 1, ['VAVUNIYA', 'VAUNIYA']],
-  ['mannar', 'DGH Mannar', 'D', 'Mannar', 1, ['MANNAR'], 'vavuniya'],
+  ['mannar', 'DGH Mannar', 'D', 'Mannar', 1, ['MANNAR']],
   ['monaragala', 'DGH Monaragala', 'D', 'Monaragala', 1, ['MONARAGALA', 'MONERAGALA']],
 
   ['balapitiya', 'BH(A) Balapitiya', 'A', 'Galle', 3, ['BALAPITIYA']],
@@ -59,10 +58,10 @@ export const HOSPITALS = [
   ['thelippalai', 'BH(A) Thellippalai', 'A', 'Jaffna', 1, ['THELIPPALAI', 'THELIPALAI', 'TELLIPPALAI']],
   ['watupitiwela', 'BH(A) Wathupitiwala', 'A', 'Gampaha', 4, ['WATUPITIWELA', 'WATHUPITIWALA']],
   // First appear in Aug 2026 as plain "BH"; Base A / B is an assumption.
-  ['mullerriyawa', 'BH Mullerriyawa (Colombo East)', 'A', 'Colombo', 5, ['MULLERIYAWA COLOMBO EAST', 'MULLERIYAWA', 'COLOMBO EAST'], 'homagama'],
-  ['theldeniya', 'BH(B) Theldeniya', 'B', 'Kandy', 3, ['THELDENIYA'], 'karawanella'],
-  ['warakapola', 'BH(B) Warakapola', 'B', 'Kegalle', 3, ['WARAKAPOLA'], 'karawanella'],
-  ['dambadeniya', 'BH(B) Dambadeniya', 'B', 'Kurunegala', 3, ['DAMBADENIYA'], 'nikaweratiya'],
+  ['mullerriyawa', 'BH Mullerriyawa (Colombo East)', 'A', 'Colombo', 5, ['MULLERIYAWA COLOMBO EAST', 'MULLERIYAWA', 'COLOMBO EAST']],
+  ['theldeniya', 'BH(B) Theldeniya', 'B', 'Kandy', 3, ['THELDENIYA']],
+  ['warakapola', 'BH(B) Warakapola', 'B', 'Kegalle', 3, ['WARAKAPOLA']],
+  ['dambadeniya', 'BH(B) Dambadeniya', 'B', 'Kurunegala', 3, ['DAMBADENIYA']],
   // Only ever appears as plain "BH" in the data, so Base A is an assumption.
   ['pointpedro', 'BH Point Pedro', 'A', 'Jaffna', 1, ['POINT PEDRO', 'POINT PADRO']],
 
@@ -82,13 +81,6 @@ export const OVERRIDES = {
 };
 
 // Garbled rows that cannot be resolved; they are dropped (and counted in the build report).
-export const IGNORED = new Set(['F', 'BHAGYA KAH', 'BHASURA EML', 'BH', 'DGH']);
+export const IGNORED = new Set(['F', 'BHAGYA KAH', 'BHASURA EML']);
 
 export const CATEGORY_NAMES = { T: 'Teaching', D: 'DGH', A: 'Base A', B: 'Base B' };
-
-// Batches whose merit order does not behave like a pick-in-turn allocation (checked by comparing
-// popularity-by-position with other main batches). They still count for vacancy estimates.
-export const ORDER_UNRELIABLE = {
-  '2026-august': 'No merit-order structure: teaching share flat across the list, Colombo peaks mid-list, '
-    + 'one end is ~70% northern/eastern hospitals; popularity order correlates -0.4 with earlier main batches (0.93 between those).',
-};

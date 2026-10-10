@@ -28,11 +28,6 @@ export function placeOf(raw) {
   return t ? t[1] : n;
 }
 
-/** True if the text looks like an institution name (vs. a stray person name in the data). */
-export function looksLikeInstitution(raw) {
-  return /(^|\s)(DGH|BH|BHA|BHB|TH|NH|CNTH|CSTH|GH|PGH|GROUP|HOSPITAL|UNIVERSITY|NOT APPLIED)(\s|$)/.test(normalize(raw));
-}
-
 function lev(a, b) {
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
   for (let j = 1; j <= b.length; j++) d[0][j] = j;
