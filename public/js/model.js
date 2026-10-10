@@ -94,15 +94,15 @@ function fitSegments(batches, H, decay, repeatWeight, K) {
   return { w, seen };
 }
 
-/** Hospitals missing from the training batches get the median weight of their category. */
-export function fillMissing(ws, seen, categories) {
+/** Hospitals with no training history borrow a comparable hospital's weight (likes[h]), else their category's median. */
+export function fillMissing(ws, seen, categories, likes = []) {
   return ws.map(w => {
     const out = Float64Array.from(w);
     const byCat = {};
     w.forEach((v, h) => { if (seen[h] && v > 0) (byCat[categories[h]] ??= []).push(v); });
     const median = a => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
     const all = Object.values(byCat).flat();
-    w.forEach((v, h) => { if (!seen[h] || !(v > 0)) out[h] = byCat[categories[h]] ? median(byCat[categories[h]]) : median(all); });
+    w.forEach((v, h) => { if (!seen[h] || !(v > 0)) out[h] = (likes[h] >= 0 && seen[likes[h]] && w[likes[h]] > 0) ? w[likes[h]] : byCat[categories[h]] ? median(byCat[categories[h]]) : median(all); });
     return out;
   });
 }

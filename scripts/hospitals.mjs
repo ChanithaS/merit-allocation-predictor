@@ -3,12 +3,13 @@
 // the author's estimates, editable in the UI -- adjust to your own judgement.
 // cat: T = Teaching, D = DGH, A = Base A, B = Base B
 export const HOSPITALS = [
-  // id, name, cat, district, conv, [alias place names...]
+  // id, name, cat, district, conv, [alias place names...], like?
+  // `like`: hospital whose popularity to borrow when this one has no usable pick history (a judgement call).
   ['colombo', 'Colombo Group', 'T', 'Colombo', 5, ['COLOMBO GROUP']],
-  ['ragama', 'TH Ragama (CNTH)', 'T', 'Gampaha', 5, ['RAGAMA']],
-  ['kalubowila', 'TH Kalubowila (CSTH)', 'T', 'Colombo', 5, ['KALUBOWILA']],
-  ['sjp', 'TH Sri Jayewardenepura', 'T', 'Colombo', 5, ['SRI JAYAWARDANEPURA', 'SRI JAYAWARDENAPURA', 'SJGH']],
-  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'KDU']],
+  ['ragama', 'TH Ragama (CNTH)', 'T', 'Gampaha', 5, ['RAGAMA', 'RAGAMA COLOMBO NORTH']],
+  ['kalubowila', 'TH Kalubowila (CSTH)', 'T', 'Colombo', 5, ['KALUBOWILA', 'KALUBOWILA COLOMBO SOUTH']],
+  ['sjp', 'TH Sri Jayewardenepura', 'T', 'Colombo', 5, ['SRI JAYAWARDANEPURA', 'SRI JAYAWARDENAPURA', 'SRI JAYAWARDENEPURA', 'SJGH']],
+  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'UNIVERSITY HOSPITAL', 'KDU']],
   ['peradeniya', 'Peradeniya Group', 'T', 'Kandy', 4, ['PERADENIYA GROUP', 'PERADENIYA']],
   ['kandy', 'TH Kandy', 'T', 'Kandy', 4, ['KANDY']],
   ['galle', 'TH Karapitiya (Galle Group)', 'T', 'Galle', 4, ['GALLE GROUP', 'KARAPITIYA (GALLE GROUP)', 'KARAPITIYA', 'GALLE']],
@@ -37,7 +38,8 @@ export const HOSPITALS = [
   ['ampara', 'DGH Ampara', 'D', 'Ampara', 1, ['AMPARA']],
   ['kilinochchi', 'DGH Kilinochchi', 'D', 'Kilinochchi', 1, ['KILINOCHCHI', 'KILLINOCHCHI']],
   ['vavuniya', 'DGH Vavuniya', 'D', 'Vavuniya', 1, ['VAVUNIYA', 'VAUNIYA']],
-  ['monaragala', 'DGH Monaragala', 'D', 'Monaragala', 1, ['MONARAGALA']],
+  ['mannar', 'DGH Mannar', 'D', 'Mannar', 1, ['MANNAR'], 'vavuniya'],
+  ['monaragala', 'DGH Monaragala', 'D', 'Monaragala', 1, ['MONARAGALA', 'MONERAGALA']],
 
   ['balapitiya', 'BH(A) Balapitiya', 'A', 'Galle', 3, ['BALAPITIYA']],
   ['dambulla', 'BH(A) Dambulla', 'A', 'Matale', 3, ['DAMBULLA', 'DHMBULLA']],
@@ -45,9 +47,9 @@ export const HOSPITALS = [
   ['elpitiya', 'BH(A) Elpitiya', 'A', 'Galle', 3, ['ELPITIYA']],
   ['gampola', 'BH(A) Gampola', 'A', 'Kandy', 3, ['GAMPOLA']],
   ['homagama', 'BH(A) Homagama', 'A', 'Colombo', 5, ['HOMAGAMA']],
-  ['horana', 'BH(A) Horana', 'A', 'Kalutara', 4, ['HORANA', 'HORANNA']],
+  ['horana', 'DGH Horana', 'D', 'Kalutara', 4, ['HORANA', 'HORANNA']],
   ['kalmunai_n', 'BH(A) Kalmunai North', 'A', 'Ampara', 1, ['KALMUNAI (NORTH)', 'KALMUNAI NORTH']],
-  ['kalmunai_s', 'BH(A) Kalmunai South (AMH)', 'A', 'Ampara', 1, ['AMH KALMUNAI (KALMUNAI SOUTH)', 'AMH KALMUNAI SOUTH', 'KALMUNAI SOUTH', 'KALMUNAI (SOUTH)']],
+  ['kalmunai_s', 'BH(A) Kalmunai South (AMH)', 'A', 'Ampara', 1, ['AMH KALMUNAI (KALMUNAI SOUTH)', 'AMH KALMUNAI SOUTH', 'KALMUNAI SOUTH', 'KALMUNAI (SOUTH)', 'KALMUNAI SOUTH ASHROFF MEMORIAL HOSPITAL']],
   ['kamburupitiya', 'BH(A) Kamburupitiya', 'A', 'Matara', 2, ['KAMBURUPITIYA']],
   ['mahiyanganaya', 'BH(A) Mahiyanganaya', 'A', 'Badulla', 1, ['MAHIYANGANAYA']],
   ['marawila', 'BH(A) Marawila', 'A', 'Puttalam', 3, ['MARAWILA', 'MARAWILLA']],
@@ -56,6 +58,11 @@ export const HOSPITALS = [
   ['tangalle', 'BH(A) Tangalle', 'A', 'Hambantota', 2, ['TANGALLE']],
   ['thelippalai', 'BH(A) Thellippalai', 'A', 'Jaffna', 1, ['THELIPPALAI', 'THELIPALAI', 'TELLIPPALAI']],
   ['watupitiwela', 'BH(A) Wathupitiwala', 'A', 'Gampaha', 4, ['WATUPITIWELA', 'WATHUPITIWALA']],
+  // First appear in Aug 2026 as plain "BH"; Base A / B is an assumption.
+  ['mullerriyawa', 'BH Mullerriyawa (Colombo East)', 'A', 'Colombo', 5, ['MULLERIYAWA COLOMBO EAST', 'MULLERIYAWA', 'COLOMBO EAST'], 'homagama'],
+  ['theldeniya', 'BH(B) Theldeniya', 'B', 'Kandy', 3, ['THELDENIYA'], 'karawanella'],
+  ['warakapola', 'BH(B) Warakapola', 'B', 'Kegalle', 3, ['WARAKAPOLA'], 'karawanella'],
+  ['dambadeniya', 'BH(B) Dambadeniya', 'B', 'Kurunegala', 3, ['DAMBADENIYA'], 'nikaweratiya'],
   // Only ever appears as plain "BH" in the data, so Base A is an assumption.
   ['pointpedro', 'BH Point Pedro', 'A', 'Jaffna', 1, ['POINT PEDRO', 'POINT PADRO']],
 
@@ -66,7 +73,7 @@ export const HOSPITALS = [
   ['karawanella', 'BH(B) Karawanella', 'B', 'Kegalle', 3, ['KARAWANELLA']],
   ['mawanella', 'BH(B) Mawanella', 'B', 'Kegalle', 3, ['MAWANELLA']],
   ['nikaweratiya', 'BH(B) Nikaweratiya', 'B', 'Kurunegala', 2, ['NIKAWERATIYA', 'NIKAWARATIYA']],
-  ['thambuththegama', 'BH(B) Thambuththegama', 'B', 'Anuradhapura', 2, ['THAMBUTHTHEGAMA']],
+  ['thambuththegama', 'BH(B) Thambuththegama', 'B', 'Anuradhapura', 2, ['THAMBUTHTHEGAMA', 'THAMBUTTEGAMA']],
 ];
 
 // Exact full-string overrides (checked before prefix stripping).
@@ -75,6 +82,13 @@ export const OVERRIDES = {
 };
 
 // Garbled rows that cannot be resolved; they are dropped (and counted in the build report).
-export const IGNORED = new Set(['F', 'BHAGYA KAH', 'BHASURA EML']);
+export const IGNORED = new Set(['F', 'BHAGYA KAH', 'BHASURA EML', 'BH', 'DGH']);
 
 export const CATEGORY_NAMES = { T: 'Teaching', D: 'DGH', A: 'Base A', B: 'Base B' };
+
+// Batches whose merit order does not behave like a pick-in-turn allocation (checked by comparing
+// popularity-by-position with other main batches). They still count for vacancy estimates.
+export const ORDER_UNRELIABLE = {
+  '2026-august': 'No merit-order structure: teaching share flat across the list, Colombo peaks mid-list, '
+    + 'one end is ~70% northern/eastern hospitals; popularity order correlates -0.4 with earlier main batches (0.93 between those).',
+};

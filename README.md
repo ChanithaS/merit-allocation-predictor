@@ -49,8 +49,21 @@ Choose "I don't have it: estimate from past years" and enter only your merit num
 candidates. Each hospital's share of posts in past batches of the same type is scaled to your total,
 and each simulation run redraws a past year's pattern. A "typical pick at my position" column shows
 where an average candidate at your rank ends up (open hospitals weighted by popularity).
-Backtest Brier score: main 0.063 estimated vs 0.049 with the real list (baseline 0.075);
+Backtest Brier score: main 0.065 estimated vs 0.049 with the real list (baseline 0.089);
 repeat 0.088 vs 0.074 (baseline 0.091). So it is usable, but less certain.
+
+## Data notes
+- `2026 August.csv` (2018/2019 main intake) is used **for vacancy estimates only**. Its merit
+  numbers are scores (higher = better, with gaps), so rows are ranked by score order, but the
+  allocation has no merit-order structure (teaching share flat across the list, Colombo peaks mid-list,
+  one end ~70% northern/eastern). Training on it made backtests much worse, so it is excluded from
+  popularity fitting (`ORDER_UNRELIABLE` in `scripts/hospitals.mjs`). Remove the entry to include it.
+- The repo is public. That CSV had candidate names typed into the institution column, so the committed
+  copy has them replaced by `UNKNOWN`; the original is kept locally in `prev-data/private/` (git-ignored).
+  For future files with names, run `node scripts/sanitize-csv.mjs "prev-data/<file>.csv"` before committing.
+- Rows that name no hospital (`UNKNOWN`, bare "DGH"/"BH") are dropped; their post can't be attributed.
+- New hospitals with no usable history (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) borrow a
+  comparable hospital's popularity (`like` in `scripts/hospitals.mjs`); their Base A/B category is assumed.
 
 ## Assumptions to check
 - Location scores (1-5) in `scripts/hospitals.mjs` are rough estimates; edit them in the UI too.

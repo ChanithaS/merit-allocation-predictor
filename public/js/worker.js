@@ -11,9 +11,10 @@ onmessage = ({ data: m }) => {
   if (m.type === 'init') { data = m.data; return; }
   const H = data.hospitals.length;
   const p = PRESETS[m.batchType];
-  const train = data.batches.filter(b => p.types.includes(b.type));
+  const train = data.batches.filter(b => p.types.includes(b.type) && b.orderReliable !== false);
   const { w, seen } = fitWeights(train, H, p.fit);
-  const wf = fillMissing(w, seen, data.hospitals.map(h => h.cat));
+  const likes = data.hospitals.map(h => (h.like ? data.hospitals.findIndex(x => x.id === h.like) : -1));
+  const wf = fillMissing(w, seen, data.hospitals.map(h => h.cat), likes);
   const ids = data.hospitals.map(h => h.id);
   // Estimate mode: vacancies are redrawn each run from past batches of the same type, scaled to n.
   const est = m.mode === 'estimate'

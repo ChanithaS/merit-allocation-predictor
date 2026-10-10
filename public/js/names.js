@@ -17,12 +17,20 @@ export function normalize(s) {
 }
 
 const PREFIX = /^(CNTH|CSTH|BHA|BHB|BH|DGH|PGH|GH|NH|TH)\s+(.*)$/;
+// Newer files write the type last: "KURUNEGALA TEACHING HOSPITAL", "HOMAGAMA BH", "MATARA DGH".
+const SUFFIX = /^(.+?)\s+(TEACHING HOSPITAL|NATIONAL HOSPITAL|BASE HOSPITAL|DGH|BHA|BHB|BH|TH|NH)$/;
 
-/** "BHA KALMUNAI (NORTH)" -> "KALMUNAI (NORTH)" */
+/** "BHA KALMUNAI (NORTH)" / "KALMUNAI NORTH BH" -> "KALMUNAI (NORTH)" / "KALMUNAI NORTH" */
 export function placeOf(raw) {
   const n = normalize(raw);
-  const m = PREFIX.exec(n);
-  return m ? m[2] : n;
+  if (PREFIX.test(n)) return PREFIX.exec(n)[2];
+  const t = SUFFIX.exec(n);
+  return t ? t[1] : n;
+}
+
+/** True if the text looks like an institution name (vs. a stray person name in the data). */
+export function looksLikeInstitution(raw) {
+  return /(^|\s)(DGH|BH|BHA|BHB|TH|NH|CNTH|CSTH|GH|PGH|GROUP|HOSPITAL|UNIVERSITY|NOT APPLIED)(\s|$)/.test(normalize(raw));
 }
 
 function lev(a, b) {
