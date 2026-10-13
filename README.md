@@ -65,7 +65,8 @@ cannot be anticipated, so the estimate is least reliable for those. So it is usa
 ## Vacancy lists
 `vacancy-lists/*.csv` (`Type,Hospital,Posts`) are official published vacancy lists. `npm run build:data` turns
 them into templates for the "Fill vacancies from…" menu, and the newest one is the default for first-time visitors.
-`2018-2019 Repeat.csv` (830 posts, 64 hospitals) was transcribed from the published PDF; the Colombo,
+`NOVEMBER 2026 (2018-2019 REPEAT BATCH).csv` (the Nov 2026 repeat batch of the 2018/2019 intake; 830 posts,
+64 hospitals) was transcribed from the published PDF; the Colombo,
 Peradeniya and Galle groups are pooled there as one line each, as in the app. Every hospital in the app appears in it.
 
 ## Data verification

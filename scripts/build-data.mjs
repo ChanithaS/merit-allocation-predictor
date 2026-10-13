@@ -70,9 +70,10 @@ for (const file of readdirSync(vdir).filter(f => f.endsWith('.csv')).sort()) {
     if (id in vac) problems.push(`${file}: hospital listed twice: ${name}`);
     vac[id] = Number(posts);
   }
-  const label = file.replace(/\.csv$/, '');
-  vacancyLists.push({ id: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'), label: `${label} vacancy list (official)`,
-    type: /repeat/i.test(label) ? 'repeat' : 'main', vacancies: vac });
+  const name = file.replace(/\.csv$/, '');
+  const label = name.replace(/(\d{4})-(\d{4})/, '$1/$2'); // file names can't contain '/'
+  vacancyLists.push({ id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), label: `${label} vacancy list (official)`,
+    type: /repeat/i.test(name) ? 'repeat' : 'main', vacancies: vac });
   console.log(`${label}: ${Object.keys(vac).length} hospitals, ${Object.values(vac).reduce((a, c) => a + c, 0)} posts`);
 }
 if (problems.length) {
