@@ -5,10 +5,10 @@
 export const HOSPITALS = [
   // id, name, cat, district, conv, [alias place names...]
   ['colombo', 'Colombo Group', 'T', 'Colombo', 5, ['COLOMBO GROUP']],
-  ['ragama', 'TH Ragama (CNTH)', 'T', 'Gampaha', 5, ['RAGAMA', 'RAGAMA COLOMBO NORTH']],
-  ['kalubowila', 'TH Kalubowila (CSTH)', 'T', 'Colombo', 5, ['KALUBOWILA', 'KALUBOWILA COLOMBO SOUTH']],
+  ['ragama', 'TH Ragama (CNTH)', 'T', 'Gampaha', 5, ['RAGAMA', 'RAGAMA COLOMBO NORTH', 'CNTH']],
+  ['kalubowila', 'TH Kalubowila (CSTH)', 'T', 'Colombo', 5, ['KALUBOWILA', 'KALUBOWILA COLOMBO SOUTH', 'CSTH']],
   ['sjp', 'TH Sri Jayewardenepura', 'T', 'Colombo', 5, ['SRI JAYAWARDANEPURA', 'SRI JAYAWARDENAPURA', 'SRI JAYAWARDENEPURA', 'SJGH']],
-  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'UNIVERSITY HOSPITAL', 'WERAHERA GENERAL SIR JOHN KOTHALAWELA DEFENCE UNIVERSITY HOSPITAL', 'KDU']],
+  ['kdu', 'University Hospital KDU', 'T', 'Colombo', 5, ['UNIVERSITY HOSPITAL KDU', 'UNIVERSITY HOSPITAL', 'UHKDU', 'WERAHERA GENERAL SIR JOHN KOTHALAWELA DEFENCE UNIVERSITY HOSPITAL', 'KDU']],
   ['peradeniya', 'Peradeniya Group', 'T', 'Kandy', 4, ['PERADENIYA GROUP', 'PERADENIYA']],
   ['kandy', 'TH Kandy', 'T', 'Kandy', 4, ['KANDY']],
   ['galle', 'TH Karapitiya (Galle Group)', 'T', 'Galle', 4, ['GALLE GROUP', 'KARAPITIYA (GALLE GROUP)', 'KARAPITIYA', 'GALLE']],
@@ -26,7 +26,7 @@ export const HOSPITALS = [
   ['avissawella', 'DGH Avissawella', 'D', 'Colombo', 4, ['AVISSAWELLA', 'AWISSAWELLA']],
   ['chilaw', 'DGH Chilaw', 'D', 'Puttalam', 3, ['CHILAW', 'CHILLAW']],
   ['matara', 'DGH Matara', 'D', 'Matara', 3, ['MATARA']],
-  ['hambantota', 'DGH Hambantota', 'D', 'Hambantota', 2, ['HAMBANTOTA']],
+  ['hambantota', 'DGH Hambantota', 'D', 'Hambantota', 2, ['HAMBANTOTA', 'HAMBANTHOTA']],
   ['embilipitiya', 'DGH Embilipitiya', 'D', 'Ratnapura', 2, ['EMBILIPITIYA']],
   ['kegalle', 'DGH Kegalle', 'D', 'Kegalle', 3, ['KEGALLE']],
   ['nawalapitiya', 'DGH Nawalapitiya', 'D', 'Kandy', 2, ['NAWALAPITIYA']],
@@ -55,11 +55,11 @@ export const HOSPITALS = [
   ['panadura', 'BH(A) Panadura', 'A', 'Kalutara', 5, ['PANADURA']],
   ['puttalam', 'BH(A) Puttalam', 'A', 'Puttalam', 2, ['PUTTALAM', 'PUTTIAM', 'PUTTLAM']],
   ['tangalle', 'BH(A) Tangalle', 'A', 'Hambantota', 2, ['TANGALLE']],
-  ['thelippalai', 'BH(A) Thellippalai', 'A', 'Jaffna', 1, ['THELIPPALAI', 'THELIPALAI', 'TELLIPPALAI']],
+  ['thelippalai', 'BH(A) Thellippalai', 'A', 'Jaffna', 1, ['THELIPPALAI', 'THELIPALAI', 'TELLIPPALAI', 'TELLIPPILAI']],
   ['watupitiwela', 'BH(A) Wathupitiwala', 'A', 'Gampaha', 4, ['WATUPITIWELA', 'WATHUPITIWALA']],
-  // First appear in Aug 2026 as plain "BH"; Base A / B is an assumption.
-  ['mullerriyawa', 'BH Mullerriyawa (Colombo East)', 'A', 'Colombo', 5, ['MULLERIYAWA COLOMBO EAST', 'MULLERIYAWA', 'COLOMBO EAST']],
-  ['theldeniya', 'BH(B) Theldeniya', 'B', 'Kandy', 3, ['THELDENIYA']],
+  // First appear in Aug 2026 as plain "BH"; Base A / B is an assumption (Theldeniya is typed DGH in the official 2018/2019 repeat vacancy list).
+  ['mullerriyawa', 'BH Mullerriyawa (Colombo East)', 'A', 'Colombo', 5, ['MULLERIYAWA COLOMBO EAST', 'MULLERIYAWA', 'COLOMBO EAST', 'CEBH']],
+  ['theldeniya', 'DGH Theldeniya', 'D', 'Kandy', 3, ['THELDENIYA']],
   ['warakapola', 'BH(B) Warakapola', 'B', 'Kegalle', 3, ['WARAKAPOLA']],
   ['dambadeniya', 'BH(B) Dambadeniya', 'B', 'Kurunegala', 3, ['DAMBADENIYA']],
   // Only ever appears as plain "BH" in the data, so Base A is an assumption.

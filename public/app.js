@@ -20,7 +20,7 @@ const state = {
   catPrio: saved.catPrio ?? { T: 1, D: 2, A: 3, B: 4 },
   alpha: saved.alpha ?? 30,
   result: null,
-  mode: saved.mode ?? 'estimate',
+  mode: saved.mode ?? (data.vacancyLists?.length ? 'known' : 'estimate'),
 };
 for (const h of data.hospitals) if (!state.order.includes(h.id)) state.order.push(h.id);
 const ids = data.hospitals.map(h => h.id);
@@ -38,23 +38,27 @@ const persist = () => store.set({ vac: state.vac, order: state.order, conv: stat
 
 // ---- inputs ----
 const batchesDesc = [...data.batches].sort((a, b) => b.date - a.date);
+const sumPosts = v => Object.values(v).reduce((a, c) => a + c, 0);
+const lists = data.vacancyLists ?? [];
 $('template').innerHTML = '<option value="">Fill vacancies from…</option>' +
-  batchesDesc.map(b => `<option value="${b.id}">${b.label} (${b.n})</option>`).join('');
+  lists.map(l => `<option value="${l.id}">${l.label} (${sumPosts(l.vacancies)} posts)</option>`).join('') +
+  batchesDesc.map(b => `<option value="${b.id}">Past batch: ${b.label} (${b.n})</option>`).join('');
 $('template').onchange = e => {
-  const b = data.batches.find(x => x.id === e.target.value);
+  const b = lists.find(x => x.id === e.target.value) ?? data.batches.find(x => x.id === e.target.value);
   if (!b) return;
   state.vac = { ...b.vacancies };
-  $('n').value = Object.values(b.vacancies).reduce((a, c) => a + c, 0);
+  $('n').value = sumPosts(b.vacancies);
   $('batchType').value = b.type;
   e.target.value = '';
   render(); persist();
 };
 $('rank').value = saved.rank ?? ''; $('n').value = saved.n ?? '';
-$('batchType').value = saved.batchType ?? 'main'; $('naRate').value = saved.naRate ?? 1.5;
+$('batchType').value = saved.batchType ?? lists[0]?.type ?? 'main'; $('naRate').value = saved.naRate ?? 1.5;
 if (!Object.keys(state.vac).length) {
-  const latestMain = batchesDesc.find(b => b.type === 'main');
-  state.vac = { ...latestMain.vacancies };
-  if (!$('n').value) $('n').value = Object.values(state.vac).reduce((a, c) => a + c, 0);
+  // First visit: start from the newest official vacancy list (else the latest main batch's posts).
+  const start = lists[0] ?? batchesDesc.find(b => b.type === 'main');
+  state.vac = { ...start.vacancies };
+  if (!$('n').value) $('n').value = sumPosts(state.vac);
 }
 
 $('cats').innerHTML = Object.entries(CAT).map(([k, v]) =>

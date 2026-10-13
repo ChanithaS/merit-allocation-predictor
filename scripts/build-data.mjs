@@ -57,10 +57,33 @@ if (problems.length) {
 }
 
 batches.sort((a, b) => a.date - b.date);
+
+// Published vacancy lists (vacancy-lists/*.csv: Type,Hospital,Posts) -> ready-made templates for the app.
+const vacancyLists = [];
+const vdir = join(root, 'vacancy-lists');
+for (const file of readdirSync(vdir).filter(f => f.endsWith('.csv')).sort()) {
+  const vac = {};
+  for (const line of readFileSync(join(vdir, file), 'utf8').split(/\r?\n/).slice(1).filter(Boolean)) {
+    const [, name, posts] = line.split(',');
+    const id = aliases[placeOf(name)] ?? aliases[normalize(name)];
+    if (!id) { problems.push(`${file}: unknown hospital "${name}"`); continue; }
+    if (id in vac) problems.push(`${file}: hospital listed twice: ${name}`);
+    vac[id] = Number(posts);
+  }
+  const label = file.replace(/\.csv$/, '');
+  vacancyLists.push({ id: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'), label: `${label} vacancy list (official)`,
+    type: /repeat/i.test(label) ? 'repeat' : 'main', vacancies: vac });
+  console.log(`${label}: ${Object.keys(vac).length} hospitals, ${Object.values(vac).reduce((a, c) => a + c, 0)} posts`);
+}
+if (problems.length) {
+  console.error('Data problems:\n  ' + [...new Set(problems)].join('\n  '));
+  process.exit(1);
+}
 const out = {
   hospitals: HOSPITALS.map(([id, name, cat, district, conv]) => ({ id, name, cat, district, conv })),
   aliases,
   batches,
+  vacancyLists,
 };
 writeFileSync(join(root, 'public/data/batches.json'), JSON.stringify(out));
 for (const b of batches)

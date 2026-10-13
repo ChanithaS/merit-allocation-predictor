@@ -60,7 +60,13 @@ cannot be anticipated, so the estimate is least reliable for those. So it is usa
   only their order is used. Check new extractions against the PDF: OCR drops rows and garbles names.
 - Rows marked "NOT APPLIED" are kept as skips. The vacancy count per hospital is how many times it appears.
 - New hospitals first seen in Aug 2026 (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) are
-  listed as plain "BH"/"DGH", so their Base A/B category is an assumption.
+  listed as plain "BH"/"DGH", so their Base A/B category is an assumption (the vacancy list types Theldeniya as DGH).
+
+## Vacancy lists
+`vacancy-lists/*.csv` (`Type,Hospital,Posts`) are official published vacancy lists. `npm run build:data` turns
+them into templates for the "Fill vacancies from…" menu, and the newest one is the default for first-time visitors.
+`2018-2019 Repeat.csv` (830 posts, 64 hospitals) was transcribed from the published PDF; the Colombo,
+Peradeniya and Galle groups are pooled there as one line each, as in the app. Every hospital in the app appears in it.
 
 ## Data verification
 Every CSV was checked against its source PDF with an independent OCR (Apple Vision), keyed by merit number,
