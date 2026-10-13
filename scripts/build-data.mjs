@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalize, placeOf } from '../public/js/names.js';
 import { HOSPITALS, OVERRIDES, IGNORED } from './hospitals.mjs';
+import { COORDS } from './hospital-coords.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const dir = join(root, 'prev-data');
@@ -14,6 +15,7 @@ const index = Object.fromEntries(HOSPITALS.map((h, i) => [h[0], i]));
 
 const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
 const problems = [];
+for (const [id] of HOSPITALS) if (!COORDS[id]) problems.push(`no map coordinates for hospital "${id}" (scripts/hospital-coords.mjs)`);
 const batches = [];
 
 for (const file of readdirSync(dir).filter(f => f.endsWith('.csv')).sort()) {
@@ -81,7 +83,7 @@ if (problems.length) {
   process.exit(1);
 }
 const out = {
-  hospitals: HOSPITALS.map(([id, name, cat, district, conv]) => ({ id, name, cat, district, conv })),
+  hospitals: HOSPITALS.map(([id, name, cat, district, conv]) => ({ id, name, cat, district, conv, lat: COORDS[id][0], lng: COORDS[id][1] })),
   aliases,
   batches,
   vacancyLists,

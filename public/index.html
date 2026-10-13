@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Merit Allocation Predictor</title>
 <meta name="description" content="Estimate your chance of each hospital in the medical internship allocation, from past merit-list data.">
+<link rel="stylesheet" href="vendor/leaflet.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -46,6 +47,20 @@
 
   <section class="card" id="summary" hidden></section>
 
+  <section class="card" id="mapCard">
+    <div class="toolbar">
+      <h2>Where do you want to be?</h2>
+      <div class="tools">
+        <button id="orderByDistance" title="Put the hospitals nearest your chosen places first" disabled>Order by distance</button>
+        <button id="clearPoints" disabled>Clear places</button>
+      </div>
+    </div>
+    <p class="hint">Tap the map (or a hospital dot) to mark places you'd like to be close to, such as home or family. Add up to 5; each hospital is scored by its nearest place. Straight-line distance, not road distance.</p>
+    <div id="map" role="application" aria-label="Map of Sri Lanka with hospitals"></div>
+    <div id="points" class="points"></div>
+    <div class="legend"><span><i class="dot T"></i>Teaching</span><span><i class="dot D"></i>DGH</span><span><i class="dot A"></i>Base A</span><span><i class="dot B"></i>Base B</span><span><i class="dot Z"></i>No posts</span></div>
+  </section>
+
   <section class="card">
     <div class="toolbar">
       <h2>Hospitals &amp; your priority order</h2>
@@ -73,7 +88,7 @@
     <div class="tablewrap">
       <table id="tbl">
         <thead><tr>
-          <th>#</th><th>Hospital</th><th title="Closeness to city centres & highways, 1-5">Loc.</th><th id="postsHead">Posts</th>
+          <th>#</th><th>Hospital</th><th title="Closeness, 1-5: to the places you marked on the map, or to Colombo / expressways if none">Loc.</th><th id="postsHead">Posts</th>
           <th title="Chance posts remain when your turn comes">Still open at my turn</th>
           <th title="Chance you are allocated here, given your order">I get this one</th>
           <th title="Chance you get this or anything above it">This or better</th>
@@ -159,6 +174,7 @@
   </form>
 </dialog>
 
+<script src="vendor/leaflet.js"></script>
 <script type="module" src="app.js"></script>
 </body>
 </html>

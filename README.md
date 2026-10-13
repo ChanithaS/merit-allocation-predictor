@@ -62,6 +62,21 @@ cannot be anticipated, so the estimate is least reliable for those. So it is usa
 - New hospitals first seen in Aug 2026 (Mannar, Mullerriyawa, Theldeniya, Warakapola, Dambadeniya) are
   listed as plain "BH"/"DGH", so their Base A/B category is an assumption (the vacancy list types Theldeniya as DGH).
 
+## Map and location score
+The "Where do you want to be?" map shows every hospital (`scripts/hospital-coords.mjs`, taken from OpenStreetMap
+where available and cross-checked with `node scripts/check-coords.mjs`; accurate to a few km). Click the map or a
+hospital to mark up to 5 places you'd like to be near. Each hospital's location score then comes from the
+straight-line distance to its nearest place (5 = right there, 1 = 250 km or more), and "Order by distance"
+sorts nearest first. With no places marked, the score is the old default (closeness to Colombo and expressways).
+Map tiles are from OpenStreetMap (attribution shown); that is fine for light traffic, but if the site gets busy
+switch to a tile provider with an API key (see their tile usage policy). Leaflet and SheetJS are vendored in
+`public/vendor/` (BSD-2 / Apache-2.0).
+
+## Excel export
+"Export to Excel" (after calculating) downloads an `.xlsx` with the hospitals in your priority order, posts, all
+probabilities as percentages, location scores/distances, and a second sheet with your inputs and notes.
+It is built in the browser; nothing is uploaded.
+
 ## Vacancy lists
 `vacancy-lists/*.csv` (`Type,Hospital,Posts`) are official published vacancy lists. `npm run build:data` turns
 them into templates for the "Fill vacancies from…" menu, and the newest one is the default for first-time visitors.

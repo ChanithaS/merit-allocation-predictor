@@ -67,3 +67,17 @@ code { background: var(--bg); padding: 1px 4px; border-radius: 4px; }
 #glossary dt { font-weight: 600; }
 #glossary dd { margin: 2px 0 0; color: var(--muted); }
 .field.wide { grid-column: 1 / -1; }
+
+#map { height: 440px; border-radius: 10px; border: 1px solid var(--line); margin: 10px 0; z-index: 0; }
+@media (max-width: 640px) { #map { height: 320px; } }
+.points { display: flex; flex-wrap: wrap; gap: 8px; min-height: 28px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 99px; font-size: .8rem; background: var(--bg); }
+.chip button { padding: 0 4px; border: 0; background: none; cursor: pointer; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 8px; font-size: .78rem; color: var(--muted); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.dot.T { background: var(--T); } .dot.D { background: var(--D); } .dot.A { background: var(--A); } .dot.B { background: var(--B); } .dot.Z { background: transparent; border: 1.5px solid var(--muted); }
+.pin { background: #d92d20; color: #fff; width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: 0 1px 4px #0006; }
+.pin b { transform: rotate(45deg); font-size: .8rem; }
+.summaryhead { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; }
+td .km { color: var(--muted); font-size: .72rem; }
+td .locv { font-weight: 700; }

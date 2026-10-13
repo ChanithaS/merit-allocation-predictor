@@ -21,7 +21,10 @@ const state = {
   alpha: saved.alpha ?? 30,
   result: null,
   mode: saved.mode ?? (data.vacancyLists?.length ? 'known' : 'estimate'),
+  points: (saved.points ?? []).slice(0, 5), // places on the map the user wants to be close to
+  view: null, // what the table currently shows (used by the Excel export)
 };
+let map = null, markers = {}, pinLayer = null, ringLayer = null;
 for (const h of data.hospitals) if (!state.order.includes(h.id)) state.order.push(h.id);
 const ids = data.hospitals.map(h => h.id);
 // Posts per hospital as shown/used: the typed list, or the average estimate from past batches of the chosen type.
@@ -33,7 +36,20 @@ function postsFor() {
   return Object.fromEntries(ids.map((id, i) => [id, Math.round(est.mean[i])]));
 }
 const conv = id => state.conv[id] ?? data.hospitals[idx[id]].conv;
-const persist = () => store.set({ vac: state.vac, order: state.order, conv: state.conv, catPrio: state.catPrio, alpha: state.alpha,
+
+// ---- distance to the places marked on the map ----
+const hosp = id => data.hospitals[idx[id]];
+const kmBetween = (a, b) => {
+  const r = x => (x * Math.PI) / 180;
+  const h = Math.sin(r(b[0] - a[0]) / 2) ** 2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(r(b[1] - a[1]) / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(h));
+};
+const nearestKm = id => state.points.length
+  ? Math.min(...state.points.map(p => kmBetween([p.lat, p.lng], [hosp(id).lat, hosp(id).lng]))) : null;
+const MAX_KM = 250; // at or beyond this distance the location score bottoms out at 1
+const locNorm = id => { const d = nearestKm(id); return d === null ? (conv(id) - 1) / 4 : Math.max(0, 1 - d / MAX_KM); };
+const locScore = id => { const d = nearestKm(id); return d === null ? conv(id) : 1 + Math.round(4 * Math.max(0, 1 - d / MAX_KM)); };
+const persist = () => store.set({ points: state.points, vac: state.vac, order: state.order, conv: state.conv, catPrio: state.catPrio, alpha: state.alpha,
   mode: state.mode, rank: $('rank').value, n: $('n').value, batchType: $('batchType').value, naRate: $('naRate').value });
 
 // ---- inputs ----
@@ -72,7 +88,7 @@ $('auto').onclick = () => {
   const a = state.alpha / 100;
   const score = id => {
     const h = data.hospitals[idx[id]];
-    return (1 - a) * (1 - (state.catPrio[h.cat] - 1) / 3) + a * (conv(id) - 1) / 4 + 0.001 * conv(id);
+    return (1 - a) * (1 - (state.catPrio[h.cat] - 1) / 3) + a * locNorm(id) + 0.001 * locNorm(id);
   };
   state.order.sort((x, y) => score(y) - score(x) || data.hospitals[idx[x]].name.localeCompare(data.hospitals[idx[y]].name));
   render(); persist();
@@ -127,7 +143,7 @@ function render() {
     rows.push(`<tr draggable="true" data-id="${id}" class="${v ? '' : 'zero'}">
       <td class="grip">☰ ${pos + 1}<br><button data-up="${id}" title="Move up">▲</button><button data-down="${id}" title="Move down">▼</button></td>
       <td><span class="name">${h.name}</span><span class="badge ${h.cat}">${CAT[h.cat]}</span><div class="sub2">${h.district}</div></td>
-      <td><select data-conv="${id}">${[1, 2, 3, 4, 5].map(k => `<option${k === conv(id) ? ' selected' : ''}>${k}</option>`).join('')}</select></td>
+      <td>${state.points.length ? `<span class="locv">${locScore(id)}</span><div class="km">${Math.round(nearestKm(id))} km</div>` : `<select data-conv="${id}">${[1, 2, 3, 4, 5].map(k => `<option${k === conv(id) ? ' selected' : ''}>${k}</option>`).join('')}</select>`}</td>
       <td>${known ? `<input type="number" min="0" data-vac="${id}" value="${v || ''}" placeholder="0">` : `<span title="Average over past ${$('batchType').value} batches">${v ? '~' + v : '0'}</span>`}</td>
       <td>${fin && v ? bar(res.open[i]) : '<span class="sub2">—</span>'}</td>
       <td>${fin && v ? bar(fin.final[i], 'g') : '<span class="sub2">—</span>'}</td>
@@ -136,7 +152,9 @@ function render() {
     </tr>`);
   });
   document.querySelector('#tbl tbody').innerHTML = rows.join('');
+  state.view = fin ? { posts, fin, cumOf } : null;
   renderSummary(fin, priority);
+  updateMap(posts, fin);
 }
 
 function renderSummary(fin, priority) {
@@ -148,7 +166,8 @@ function renderSummary(fin, priority) {
   const typ = data.hospitals.map((h, i) => [h, res_().typical[i]]).sort((a, b) => b[1] - a[1]).slice(0, 3).filter(x => x[1] > 0.02);
   const note = state.mode === 'estimate'
     ? `<p class="hint">Vacancies were estimated from past ${$('batchType').value} batches, so these figures are less certain than with the real list.</p>` : '';
-  el.innerHTML = `<h2>Your outlook at merit #${$('rank').value} of ${$('n').value}</h2>
+  el.innerHTML = `<div class="summaryhead"><h2>Your outlook at merit #${$('rank').value} of ${$('n').value}</h2>
+    <button id="exportBtn" title="Download the results as an Excel file">⬇ Export to Excel</button></div>
     <ul>
       <li>Where a typical candidate at your position ends up: ${typ.map(([h, p]) => `<b>${h.name}</b> (${(p * 100).toFixed(0)}%)`).join(', ') || '—'}</li>
       <li>With your priority order (set it in the table below), most likely: ${top.map(([h, p]) => `<b>${data.hospitals[h].name}</b> (${(p * 100).toFixed(0)}%)`).join(', ') || '—'}</li>
@@ -157,6 +176,108 @@ function renderSummary(fin, priority) {
     </ul>${note}`;
 }
 const res_ = () => state.result;
+$('summary').addEventListener('click', e => { if (e.target.closest('#exportBtn')) exportXlsx(); });
+
+// ---- Excel export (built in the browser; the spreadsheet library loads only when needed) ----
+async function exportXlsx() {
+  const v = state.view, res = state.result;
+  if (!v) return alert('Calculate first, then export.');
+  if (!window.XLSX) {
+    try {
+      await new Promise((ok, fail) => { const sc = document.createElement('script'); sc.src = 'vendor/xlsx.mini.min.js'; sc.onload = ok; sc.onerror = fail; document.head.appendChild(sc); });
+    } catch { return alert('Could not load the spreadsheet library.'); }
+  }
+  const est = state.mode === 'estimate';
+  const head = ['Priority', 'Hospital', 'Category', 'District', 'Location score (1-5)', state.points.length ? 'Distance to nearest chosen place (km)' : 'Distance (km)',
+    est ? 'Posts (estimated)' : 'Posts', 'Still open at my turn', 'I get this one', 'This or better', 'Typical pick at my position'];
+  const rows = state.order.filter(id => (v.posts[id] || 0) > 0).map((id, k) => {
+    const h = hosp(id), i = idx[id], d = nearestKm(id);
+    return [k + 1, h.name, CAT[h.cat], h.district, locScore(id), d === null ? '' : Math.round(d), v.posts[id],
+      res.open[i], v.fin.final[i], v.cumOf[i] ?? 0, res.typical[i]];
+  });
+  const ws = XLSX.utils.aoa_to_sheet([head, ...rows]);
+  rows.forEach((_, r) => [7, 8, 9, 10].forEach(c => { const cell = ws[XLSX.utils.encode_cell({ r: r + 1, c })]; if (cell) cell.z = '0.0%'; }));
+  ws['!cols'] = [8, 34, 10, 14, 12, 18, 10, 14, 12, 12, 16].map(wch => ({ wch }));
+  const info = [
+    ['Item', 'Value'],
+    ['Merit number', Number($('rank').value)],
+    ['Total candidates', Number($('n').value)],
+    ['Batch type', $('batchType').value],
+    ['Vacancies', est ? `Estimated from past ${$('batchType').value} batches` : 'Entered / official vacancy list'],
+    ['Skip rate %', Number($('naRate').value)],
+    ['Simulations', res.sims],
+    ['Places chosen on map', state.points.length ? state.points.map((p, i) => `${i + 1}: ${p.lat.toFixed(3)}, ${p.lng.toFixed(3)}`).join(' | ') : 'none'],
+    ['Learned from', res.trained.join('; ')],
+    ['Generated', new Date().toLocaleString()],
+    [],
+    ['Notes'],
+    ['"Still open at my turn" = chance posts remain when it is your turn. "I get this one" = chance you end up there given your priority order. "This or better" = running total down your list.'],
+    ['These are statistical estimates from past allocations, not a guarantee. Hospital distances are straight-line and approximate.'],
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(info);
+  ws2['!cols'] = [{ wch: 24 }, { wch: 90 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Results');
+  XLSX.utils.book_append_sheet(wb, ws2, 'Inputs & notes');
+  XLSX.writeFile(wb, `merit-${$('rank').value}-of-${$('n').value}.xlsx`);
+}
+
+// ---- map ----
+const catColor = cat => getComputedStyle(document.documentElement).getPropertyValue('--' + cat).trim() || '#667085';
+function initMap() {
+  if (typeof L === 'undefined') { $('map').innerHTML = '<p class="hint" style="padding:12px">The map could not load. Check your connection and reload.</p>'; return; }
+  map = L.map('map', { minZoom: 7, maxBounds: [[5.0, 78.8], [10.6, 82.8]], maxBoundsViscosity: 0.7 });
+  map.fitBounds([[5.85, 79.6], [9.95, 82.0]]);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 17,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(map);
+  ringLayer = L.layerGroup().addTo(map);
+  for (const h of data.hospitals) {
+    markers[h.id] = L.circleMarker([h.lat, h.lng], { radius: 6, weight: 1.5, color: '#fff', fillColor: catColor(h.cat), fillOpacity: 0.9, bubblingMouseEvents: false })
+      .addTo(map).bindTooltip(h.name).on('click', () => addPoint(h.lat, h.lng));
+  }
+  pinLayer = L.layerGroup().addTo(map);
+  map.on('click', e => addPoint(e.latlng.lat, e.latlng.lng));
+}
+function addPoint(lat, lng) {
+  if (state.points.length >= 5) return alert('You can mark up to 5 places. Remove one first.');
+  state.points.push({ lat, lng });
+  render(); persist();
+}
+function updateMap(posts, fin) {
+  // chips + buttons work even if the map library failed
+  const open = data.hospitals.filter(h => (posts[h.id] || 0) > 0);
+  $('points').innerHTML = state.points.map((p, i) => {
+    const near = (open.length ? open : data.hospitals).map(h => [h, kmBetween([p.lat, p.lng], [h.lat, h.lng])]).sort((a, b) => a[1] - b[1])[0];
+    return `<span class="chip">📍 Place ${i + 1} · nearest: ${near[0].name} (${Math.round(near[1])} km)<button data-rmpoint="${i}" title="Remove" aria-label="Remove place ${i + 1}">✕</button></span>`;
+  }).join('') || '<span class="sub2">No places marked yet. Without any, the location score is a rough default (closeness to Colombo and expressways).</span>';
+  $('orderByDistance').disabled = $('clearPoints').disabled = !state.points.length;
+  if (!map) return;
+  for (const h of data.hospitals) {
+    const m = markers[h.id], v = posts[h.id] || 0, i = idx[h.id], d = nearestKm(h.id);
+    m.setStyle(v ? { radius: 5 + Math.min(6, Math.sqrt(v)), fillColor: catColor(h.cat), fillOpacity: 0.9, color: '#fff' }
+                 : { radius: 4, fillColor: 'transparent', fillOpacity: 0, color: catColor('Z') || '#667085' });
+    m.setTooltipContent(`<b>${h.name}</b><br>${v} post${v === 1 ? '' : 's'}${d === null ? '' : ` · ${Math.round(d)} km from your nearest place`}` +
+      (fin && v ? `<br>Chance I get it: ${(fin.final[i] * 100).toFixed(0)}%` : ''));
+  }
+  pinLayer.clearLayers(); ringLayer.clearLayers();
+  state.points.forEach((p, i) => {
+    L.circle([p.lat, p.lng], { radius: 50000, weight: 1, dashArray: '4', color: '#d92d20', fillOpacity: 0.04, interactive: false }).addTo(ringLayer);
+    L.marker([p.lat, p.lng], { draggable: true, title: `Place ${i + 1} (drag to move)`,
+      icon: L.divIcon({ className: '', html: `<div class="pin"><b>${i + 1}</b></div>`, iconSize: [26, 26], iconAnchor: [13, 26] }) })
+      .on('dragend', e => { const ll = e.target.getLatLng(); state.points[i] = { lat: ll.lat, lng: ll.lng }; render(); persist(); })
+      .addTo(pinLayer);
+  });
+}
+$('points').addEventListener('click', e => {
+  const i = e.target.dataset.rmpoint;
+  if (i === undefined) return;
+  state.points.splice(Number(i), 1); render(); persist();
+});
+$('clearPoints').onclick = () => { state.points = []; render(); persist(); };
+$('orderByDistance').onclick = () => {
+  state.order.sort((x, y) => nearestKm(x) - nearestKm(y) || state.catPrio[hosp(x).cat] - state.catPrio[hosp(y).cat]);
+  render(); persist();
+};
 
 // table interactions
 const tbody = document.querySelector('#tbl tbody');
@@ -224,4 +345,5 @@ $('run').onclick = () => {
     naRate: (Number($('naRate').value) || 0) / 100, sims: 4000, seed: 1 });
 };
 
+initMap();
 render();
